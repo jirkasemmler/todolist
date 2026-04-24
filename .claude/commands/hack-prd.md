@@ -258,8 +258,14 @@ a já je tam vytvořím."
 - V konverzaci zobrazuj datový model jako ASCII tabulky (pro všechny úrovně).
   Mermaid ER diagram přidej jen do GitHub Issue (krok 6B) — tam se renderuje nativně.
 - SQL musí být funkční pro Supabase — tzn. PostgreSQL syntax.
-  Na každou tabulku přidej `ALTER TABLE <nazev> DISABLE ROW LEVEL SECURITY;`
-  (Supabase má RLS zapnuté by default — bez vypnutí by anon key nevrátil data).
+  Na každou tabulku přidej RLS s permissive policy (Supabase má RLS zapnuté
+  by default — bez policy by anon key nevrátil data):
+  ```sql
+  ALTER TABLE <nazev> ENABLE ROW LEVEL SECURITY;
+  CREATE POLICY "<nazev>_allow_all" ON <nazev> FOR ALL USING (true) WITH CHECK (true);
+  ```
+  Tato policy povolí vše (čtení i zápis) pro všechny — je to workshop MVP.
+  Až účastník přidá auth, policy se zpřísní na `auth.uid() = user_id`.
 - PRD.md vždy ulož lokálně (agenti ho čtou). GitHub Issue je bonus pro uživatele.
 - Commitni PRD.md a pushni:
   ```bash

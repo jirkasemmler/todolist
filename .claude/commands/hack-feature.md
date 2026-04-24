@@ -172,7 +172,9 @@ Přizpůsob prompt podle účastníkovy appky:
 - Jeden prompt = jedna feature. Neimplementuj víc věcí najednou
 - Drž kód jednoduchý — žádné zbytečné abstrakce
 - Pokud feature vyžaduje novou tabulku nebo sloupec v Supabase, dej uživateli SQL
-  a řekni mu ať ho pustí v SQL Editoru
+  a řekni mu ať ho pustí v SQL Editoru. Na každou novou tabulku přidej RLS + policy:
+  `ALTER TABLE <nazev> ENABLE ROW LEVEL SECURITY;`
+  `CREATE POLICY "<nazev>_allow_all" ON <nazev> FOR ALL USING (true) WITH CHECK (true);`
 - Nemaž existující funkčnost pokud tě o to uživatel explicitně nepožádá
 - Pokud appka po změně nefunguje, oprav to než půjdeš dál
 - Commit messages: conventional format (`feat:`, `fix:`, `refactor:`, `style:`)

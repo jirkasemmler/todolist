@@ -46,8 +46,10 @@ Pro každou změnu se ptej v tomto pořadí:
 - Je `.env.local` v `.gitignore`? Není committnutý?
 - Jsou někde hardcoded API klíče, hesla, Supabase service_role key?
 - Používá se `NEXT_PUBLIC_` prefix jen pro věci co VÁŽNĚ můžou být veřejné?
-- Supabase: jsou tabulky bez RLS? Pro workshop je to OK (RLS je vypnuté záměrně).
-  Pokud by appka šla do produkce, RLS by se mělo zapnout — zmíň to jednou větou.
+- Supabase: jsou tabulky bez RLS nebo bez policy? RLS musí být zapnuté na každé
+  tabulce. Pokud chybí policy, je to 🔴 blocker. Minimální policy pro workshop:
+  `CREATE POLICY "allow_all" ON <tabulka> FOR ALL USING (true) WITH CHECK (true);`
+  Pokud appka má auth, policy by měla být `auth.uid() = user_id` — zmíň to.
 - Server actions: validují vstup, nebo věří blindly clientu?
 
 **🧑‍🦯 UX**
