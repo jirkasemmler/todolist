@@ -81,7 +81,7 @@ Tohle je důležitý krok — nastaví, jak se k tobě budou ostatní agenti cho
 >
 > **B) Advanced** — jdu rychle, challenguju tvoje rozhodnutí, přeskakuju
 > vysvětlení. Víc volnosti, míň hand-holdingu. Také odemkne pokročilejší
-> features (orchestrátor pro větší features, komplexnější datový model).
+> features (tým agentů na větší features, komplexnější datový model).
 >
 > Pokud si nejsi jistý/á, dej A. Můžeš to kdykoliv změnit v souboru
 > `.participant-level`."

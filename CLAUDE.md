@@ -50,7 +50,7 @@ v Claude Code a uvidíš autocomplete se všemi.
 - `6.` `/hack-review` — Reviewer: druhý pár očí nad PR (bezpečnost, UX, soulad s PRD)
 
 ### Advanced track (pro rychlejší účastníky)
-- `7.` `/hack-feature-pro` — Orchestrátor: větší feature rozloží na backend + frontend + test subagenty
+- `7.` `/hack-feature-pro` — Tým agentů: Lead řídí, Builder kóduje, Critic reviewuje (max 2 kola)
 - `8.` `/hack-test` — Nastaví Vitest + React Testing Library a napíše první testy
 - `9.` `/hack-ci` — Nastaví GitHub Actions pipeline (lint, typecheck, test, build)
 - `10.` `/hack-agent` — Vytvoř si vlastního Claude Code agenta (custom command) pro svůj projekt

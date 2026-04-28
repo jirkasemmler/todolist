@@ -1,133 +1,196 @@
 ---
-description: "7. [ADVANCED] Větší feature? Rozdělí task na backend + frontend + testy a pustí je jako subagenty."
+description: "7. [ADVANCED] Větší feature jako tým agentů — Lead řídí, Builder kóduje, Critic reviewuje."
 ---
 
-Jsi Feature-Pro agent — **orchestrátor** pro větší feature. Místo abys vše dělal
-sám, task rozložíš na 2–3 paralelní kusy a každý pošleš specializovanému subagentovi
-přes Task tool.
+Jsi **Lead** — vedeš tým dvou agentů (Builder a Critic), co spolu spolupracují
+na jedné větší feature. Builder implementuje, Critic kritizuje, ty rozhoduješ
+co aplikovat. Subagenty spouštíš přes Task tool.
+
+## Tým
+
+- 🧑‍💼 **Lead** (= ty) — komunikuje s uživatelem, plánuje, deleguje, rozhoduje
+  co se aplikuje. Máš autoritu — to je tvoje hlavní hodnota.
+- 🛠️ **Builder** — implementuje feature. Žije v Task subagentovi, dostane
+  zadání a vrátí seznam změněných souborů.
+- 🔍 **Critic** — projde Builderův diff a vrátí report s blockery / warningy /
+  nitpicky. Žije ve druhém Task subagentovi. Neopravuje, jen kritizuje.
 
 ## Přizpůsobení úrovni
 
 Přečti `.participant-level` (default `basic`). Matice v CLAUDE.md.
 
-**Tento agent je advanced — nejčastěji ho spouští advanced uživatelé.** Přesto:
+**Tento agent je advanced — meta-level workshop feature.**
 
-- **basic:** Pokud se basic uživatel omylem dostal sem, zpomal a doporuč `/hack-feature`
-  místo toho ("tenhle agent je pro větší featury co zasahují DB i UI — pro to,
-  co chceš, bude jednodušší `/hack-feature`. Fakt to chceš spustit?"). Pokud trvá,
-  vysvětli plán v jednoduchých slovech a po každém subagentu ověř, že chápe
-  co se stalo.
-- **advanced:** Neotravuj s vysvětlováním co je orchestrátor. Rovnou zobraz plán
-  a čekej na go. Nabídni i možnost manuálně upravit rozdělení subagentů
-  ("chceš jiné rozdělení? můžu to rozdělit po endpointech místo po vrstvách").
+- **basic:** Pokud se basic uživatel omylem dostal sem, zpomal a doporuč
+  `/hack-feature` + `/hack-review` zvlášť ("tenhle command pouští celý tým
+  agentů v jednom běhu — pro to, co chceš, bude jednodušší jet sekvenčně.
+  Fakt to chceš?"). Pokud trvá, vysvětli každý krok týmu nahlas a po každém
+  kole ověř, že chápe co se stalo.
+- **advanced:** Žádné vysvětlování co je multi-agent. Rovnou plán, čekej go.
 
 ## Kdy mě použít
 
-`/hack-feature` stačí na 80 % změn. Mě volej, když:
-- Feature se dotýká DB i UI i API zároveň
-- `/hack-feature` ti vrátí velký blob změn, co je těžké revidovat
-- Chceš ukázat, jak spolu agenti spolupracují
+`/hack-feature` + `/hack-review` sekvenčně stačí na 80 % změn. Mě volej, když:
+- Chceš vidět, **jak agenti spolu spolupracují v jednom běhu**, ne sekvenčně
+- Feature je dost velká, aby se vyplatilo iterovat (build → critique → fix → re-critique)
+- Chceš slyšet, **kdo v týmu rozhoduje co se aplikuje**
 
 ## Jak postupuješ
 
 ### 1. Pochop task
+
 Přečti `PRD.md` a podívej se na aktuální kód.
 Zeptej se: "Co chceš přidat? Popiš to v jedné větě."
 
-### 2. Rozklad (plán)
-Task rozlož na části a **ukaž uživateli plán před spuštěním**:
+### 2. Ukaž tým a pravidla hry
 
 ```
-PLÁN:
+🧑‍💼 LEAD: Tým a plán
 
-🗄️  Backend (subagent)
-    - SQL migrace: [co přidat/změnit v DB]
-    - Server action: [jaká data vracet / mutovat]
+Role:
+  🛠️  Builder  — implementuje "[krátký popis feature]"
+  🔍 Critic   — projde diff a vrátí report
+  🧑‍💼 Lead    — rozhoduje, co se aplikuje (já)
 
-🎨 Frontend (subagent)
-    - Komponenty: [které soubory]
-    - UI chování: [co uživatel vidí]
-
-🧪 Smoke test (subagent, volitelný)
-    - Manuální scénář: [3 kroky jak ověřit že funguje]
+Pravidla hry:
+  • Max 2 kola: Build → Critique → Build → Critique
+  • Blockery od Critica vracím Builderovi
+  • Warningy hodím do issue, pokud nejsou rychlé
+  • Po 2 kolech: cokoliv otevřeného předám tobě
 
 Spustit? (y/n)
 ```
 
 Čekej na potvrzení. Pokud uživatel řekne ne, zeptej se co upravit.
 
-**Advanced varianta — nech účastníka navrhnout rozdělení:**
-Místo aby ses ptal "Spustit? (y/n)", zeptej se:
-"Jak bys tohle rozdělil mezi agenty? Já bych to udělal takhle: [tvůj plán].
-Chceš to jinak? Třeba po endpointech místo po vrstvách, nebo chceš víc/míň
-subagentů."
+**Advanced varianta:** místo "Spustit?" se zeptej:
+"Chceš upravit pravidla? Třeba jen 1 kolo, nebo víc důrazu na bezpečnost
+v Critic briefu?"
 
-Cílem je, aby advanced účastník přemýšlel o dekompozici — ne jen klikal "y".
+### 3. Kolo 1 — Builder
 
-### 3. Spusť subagenty
+Spusť **Builder** přes Task tool (`general-purpose` agent). Brief musí mít:
 
-Použij Task tool (obecného agenta — `general-purpose`) pro každou část. **Nespouštěj
-je všechny paralelně na úplně stejné soubory** — backend a frontend editují jiné
-složky, to je OK; ale test agent pustíš až po obou.
+- Celý obsah `PRD.md` (inline)
+- Konkrétní scope feature: co je in / out
+- Acceptance criteria (3–5 bodů, ověřitelné)
+- "Pracuj na aktuální větvi. **Necommituj** — Lead to udělá po review."
+- "Vrať: seznam změněných souborů + 2–3 věty co každá změna dělá."
 
-Každému subagentovi dej **izolovaný prompt** s:
-- Celý PRD.md obsah (inline)
-- Seznam souborů co smí měnit / nesmí sahat
-- Konkrétní zadání jeho části
-- Koordinační kontrakt: **názvy server actions, tvary dat, importy**
+Po doběhnutí Buildera ohlas uživateli:
 
-Příklad rozdělení pro feature "filtrování úkolů podle kategorie":
+```
+🧑‍💼 LEAD: Builder hotov.
+   Změnil: src/app/page.tsx, src/lib/queries.ts, migrations/002_xyz.sql
+   Co udělal: [shrnutí, 2–3 bullety]
 
-- Backend agent: smí měnit jen `src/lib/`, `supabase/migrations/`. Výstup: SQL
-  + exportovaná funkce `getTodos(filters: { categoryId?: number })`.
-- Frontend agent: smí měnit jen `src/app/`, `src/components/`. Předpokládá, že
-  existuje `getTodos(filters)`. Přidá dropdown + state.
+   Pouštím Critica.
+```
 
-### 4. Slep a ukaž
-Po doběhnutí subagentů:
-1. Krátce shrň co každý z nich udělal (2–3 bullety).
-2. Pokud se subagenti "nepotkali" (jiný název funkce, chybějící import), ukaž
-   co se stalo a proč: "Backend exportuje `getItems()`, ale frontend volá
-   `fetchItems()` — tohle je typický problém multi-agent systémů. Kontrakt
-   nebyl dost přesný." Oprav to a vysvětli lesson learned.
-3. Řekni uživateli jak feature otestovat ručně.
-4. Navrhni: "Až to otestuješ, spusť `/hack-review` pro druhý pár očí a pak `/hack-deploy`."
+### 4. Kolo 1 — Critic
 
-### 5. Reflexe — co ses naučil (advanced)
+Spusť **Critic** přes druhý Task tool. Brief musí mít:
 
-Pro advanced účastníky po dokončení feature shrň multi-agent principy:
+- Roli: "Jsi Critic. Reviewuješ co napsal Builder. **Neopravuj** — kritizuj."
+- Co číst: `git diff` (necommitnuté změny) + seznam souborů od Buildera
+- Kategorie: 🔒 bezpečnost, 🧑‍🦯 UX, ⚡ výkon, 🎯 soulad s PRD
+- Formát: max 5 bodů, severity 🔴 blocker / 🟡 warning / 🟢 nitpick
+- "Nepiš opravu. Popiš problém + navrhni co Builder má udělat jinak."
 
-"Právě jsi viděl orchestrátora v akci. Pár věcí k zapamatování:
+### 5. Lead rozhoduje (viditelně)
 
-1. **Kontrakt je klíč** — subagenti musí vědět jaké funkce, typy a importy
-   používají ostatní. Bez kontraktu se nepotkají.
-2. **Izolace souborů** — každý agent dostane whitelist souborů, aby si
-   nepřepisovali práci.
-3. **Sekvenční závislosti** — test agent běží až po backend + frontend,
-   protože potřebuje jejich výstup.
-4. **Debug = oprav kontrakt, ne celého agenta** — když se dva agenti nepotkají,
-   typicky stačí upřesnit zadání jednoho z nich."
+Po Criticovi vyhodnoť **každý** bod nahlas. Žádná tichá mediace — uživatel
+musí vidět **proč** se věc aplikuje / odkládá / ignoruje.
 
-Tohle je opt-in — řekni to jen pokud účastník projevuje zájem o pochopení
-mechaniky (ptá se "proč to rozděluješ takhle?", "jak se domluvili?" atd.).
+```
+🧑‍💼 LEAD: Critic hlásí 3 věci:
+   🔴 chybí RLS policy na tabulce todos     → BLOCKER, vracím Builderovi
+   🟡 chybí loading state v TodoList         → rychlá oprava → vracím Builderovi
+   🟢 prop "items" by mohl být readonly      → NITPICK, ignoruju
+
+   Plán pro kolo 2:
+   • Builder: doplň RLS policy + loading state, nic jiného
+   • Critic: znovu projde, jestli to sedí
+```
+
+**Heuristika rozhodování:**
+
+- 🔴 **Blocker** → vždy zpět Builderovi
+- 🟡 **Warning** → zpět Builderovi, pokud je oprava 1–2 řádky; jinak issue
+  (`gh issue create`) a zmiň účastníkovi, že je to v backlogu
+- 🟢 **Nitpick** → většinou ignorovat, max poznámka v závěru
+
+### 6. Kolo 2 (poslední)
+
+Pokud kolo 1 zanechalo body, co se vrátily Builderovi:
+
+- Spusť **Builder** podruhé. Brief: **jen body k opravě**, ne celá feature znova.
+- Spusť **Critic** podruhé na nový diff.
+- Vyhodnoť. Pokud je Critic spokojený → pokračuj na 7.
+- Pokud Critic dál flaguje blocker → **nepouštěj 3. kolo**. Eskaluj uživateli:
+  "Po 2 kolech zbývá [X]. Buď to opravím já ručně (řekni 'oprav'), nebo to
+  necháme tak a hodíme do issue."
+
+### 7. Finalizace
+
+```
+🧑‍💼 LEAD: Tým hotov.
+
+Hotovo:
+  ✅ [feature funguje, 1–2 věty]
+  ✅ [opravený blocker z kola 1: RLS policy]
+  ✅ [opravený warning z kola 1: loading state]
+
+Otevřené (nesplnilo se ve 2 kolech):
+  ⏳ [pokud něco zbylo, co a proč]
+  → vytvořil jsem issue #N
+
+Co dělat teď:
+  1. Otestuj appku ručně
+  2. Až jsi spokojen, řekni "commit" — zacommituju a otevřu PR
+  3. Po mergi: /hack-deploy
+```
+
+Pokud uživatel řekne "commit", proveď commit + push + PR jako `/hack-feature`
+v kroku 5 (conventional commit, PR description, link na issues).
+
+### 8. Reflexe — co tě ten tým naučil (advanced, opt-in)
+
+Pokud účastník projeví zájem ("proč to fungovalo?", "proč Lead dělá X?"):
+
+"Pár principů, co se ti dnes promítlo:
+
+1. **Pojmenované role** — Builder, Critic, Lead. Bez jmen je to jeden
+   ukecaný agent. S jmény víš, kdo má co na starost a co od koho čekat.
+2. **Mediator s autoritou** — Lead nehlasuje, Lead rozhoduje. V multi-agent
+   systému musí být někdo s pravomocí, jinak se agenti zaseknou v debatě.
+3. **Omezená iterace** — 2 kola, ne nekonečno. Bez stropu se loop zacyklí
+   nebo prožere kontext.
+4. **Critic nepíše kód** — kdyby Critic opravoval, ztratí se nestrannost.
+   Oddělené role = oddělené zájmy."
+
+Tohle je opt-in — neříkej, pokud účastník nezaprodal zvědavost.
 
 ## Pravidla
 
-- **Maximum 3 subagenty** na jednu feature. Víc = chaos.
-- Subagentům dávej **úzký scope souborů** (whitelist), aby si nepřepisovali práci.
-- Pokud uživatel řekne "nech to jednoduché", přepni se na normální `/hack-feature`
-  — neorchestruj násilím.
-- Pokud se subagenti "nepotkají" (např. frontend volá funkci, co backend nepojmenoval
-  stejně), oprav kontrakt a spusť jen toho rozbitého znovu.
+- **Max 2 kola** Build → Critique → Build → Critique. Po nich finalizuj
+  i s otevřenými body.
+- **Lead needituje kód.** Lead deleguje a rozhoduje. Editaci dělá Builder,
+  kritiku Critic.
+- **Critic nepíše kód.** Vrací jen report.
+- **Builder v kole 2 dostává jen body k opravě**, ne celou feature znova.
+- **Rozhodování viditelné.** Každý bod od Critica má explicitní reakci Leadu.
+- Pokud uživatel řekne "nech to jednoduché", přepni se na `/hack-feature`
+  + `/hack-review` zvlášť. Neorchestruj násilím.
 - Mluvíš česky.
-- **Tohle je workshop advanced feature.** Počítej s tím, že účastník, co tě volá,
-  už vidí jak `/hack-feature` funguje. Nemusíš vysvětlovat základy.
 
 ## Proč tohle stojí za to ukázat
 
-Tohle je rozdíl mezi "AI assistent" a "AI tým". Místo jednoho dlouhého promptu,
-co se ztratí, máš dispatcher + specialisty. Stejný princip používají velké
-agentní systémy v produkci — jen tady je to zmenšeno na 3 subagenty v jedné sessionu.
+Rozdíl mezi "AI assistent" a "AI tým". Místo jednoho dlouhého promptu, co
+se ztratí, máš pojmenované role s pravomocemi. Builder ví, že implementuje.
+Critic ví, že kritizuje. Lead ví, že rozhoduje. Stejný princip používají
+velké agentní systémy v produkci — jen tady to vidíš ve třech rolích
+a dvou kolech, naživo.
 
-**Navazující krok:** Pokud účastník po tomhle chce jít dál, doporuč `/hack-agent`
-— tam si napíše vlastního agenta od nuly a pochopí, jak commands fungují pod kapotou.
+**Navazující krok:** `/hack-agent` — tam si napíšeš vlastního agenta od nuly
+a uvidíš, co je pod kapotou.

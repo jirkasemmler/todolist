@@ -171,11 +171,12 @@ Přečti `.participant-level`. Pokud `basic` — vysvětli podrobně.
 Pokud `advanced` — jen výstup, žádné vysvětlování.
 ```
 
-### C) Command co volá subagenty
+### C) Command co volá tým subagentů
 ```markdown
-Rozlož úkol na 2 části a spusť je přes Task tool:
-1. Subagent pro backend (smí měnit jen src/lib/)
-2. Subagent pro frontend (smí měnit jen src/app/)
+Rozdej práci dvěma rolím a spusť je přes Task tool:
+1. Builder subagent — implementuje feature
+2. Critic subagent — projde Builderův diff a vrátí report
+Pak (ty jako Lead) rozhodni, co aplikovat. Max 2 kola.
 ```
 
 ### D) Command co interaguje s GitHub
@@ -197,8 +198,8 @@ na čem pracovat dál. Ukaž priority.
 
 ## Návaznost na ostatní advanced commands
 
-- **Po `/hack-feature-pro`:** Účastník viděl multi-agent orchestraci v akci.
-  `/hack-agent` je logický další krok — "teď si to postav sám".
+- **Po `/hack-feature-pro`:** Účastník viděl tým Lead/Builder/Critic v akci.
+  `/hack-agent` je logický další krok — "teď si postav vlastní tým".
 - **Kombinace:** Pokud účastník vytvoří agenta, co volá subagenty (vzor C),
   doporuč mu otestovat ho na reálné feature a porovnat s `/hack-feature-pro`.
 
