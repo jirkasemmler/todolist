@@ -61,12 +61,19 @@ git push -u origin main
 auth z terminálu (CLI varianta otevírá prohlížeč, což nefunguje ve VM nebo
 remote desktopu).
 
+**Důležité: PROD klíče!** Na Vercel jdou klíče z **PROD** Supabase projektu,
+ne z DEV. Řekni: "Otevři svůj PROD Supabase projekt → Connect → zkopíruj
+URL a Publishable Key. Lokálně máš DEV, na Vercelu bude PROD."
+
+Pokud uživatel ještě nespustil SQL v PROD projektu, připomeň:
+"Nezapomeň spustit stejný SQL z migrations/ i v PROD projektu."
+
 **Možnost A — přes Vercel web (doporučená):**
 1. Jdi na vercel.com → New Project → Import z GitHubu
 2. Vyber repo
-3. V "Environment Variables" přidej:
-   - `NEXT_PUBLIC_SUPABASE_URL`
-   - `NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY`
+3. V "Environment Variables" přidej (z **PROD** Supabase projektu):
+   - `NEXT_PUBLIC_SUPABASE_URL` — PROD URL
+   - `NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY` — PROD key
 4. Klikni Deploy
 
 **Možnost B — přes CLI** (jen pokud účastník výslovně chce):
@@ -77,8 +84,8 @@ použij Možnost A.
 
 ```bash
 npx vercel --yes
-npx vercel env add NEXT_PUBLIC_SUPABASE_URL
-npx vercel env add NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY
+npx vercel env add NEXT_PUBLIC_SUPABASE_URL    # PROD hodnota!
+npx vercel env add NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY  # PROD hodnota!
 npx vercel --prod
 ```
 

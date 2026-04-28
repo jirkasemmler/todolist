@@ -28,11 +28,15 @@ Přečti soubor `PRD.md` v kořenu projektu. Pokud neexistuje, řekni uživateli
 "Nemám PRD. Spusť nejdřív /hack-prd pro vytvoření zadání."
 
 ### 2. Ověř prerekvizity
-Zeptej se uživatele: "Máš vytvořený Supabase projekt a spuštěné SQL z PRD v SQL editoru?
-Potřebuju od tebe dvě hodnoty — najdeš je v Supabase dashboardu: otevři svůj
-projekt a klikni na tlačítko **Connect** (nahoře). Tam uvidíš obě:
+Zeptej se uživatele: "Máš vytvořené **dva** Supabase projekty — DEV a PROD?
+A spuštěné SQL z PRD v DEV projektu?
+
+Pro lokální vývoj budeme používat DEV projekt. Otevři ho v Supabase dashboardu
+a klikni na tlačítko **Connect** (nahoře). Potřebuju tyto hodnoty z DEV projektu:
 - NEXT_PUBLIC_SUPABASE_URL (formát: https://xxx.supabase.co)
-- NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY (začíná na eyJ...)"
+- NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY (začíná na eyJ...)
+
+PROD projekt nastavíme později při deployi na Vercel."
 
 ### 3. Vygeneruj aplikaci
 Na základě PRD:
@@ -71,10 +75,30 @@ Na základě PRD:
 
 5. Vytvoř `.env.local` s hodnotami od uživatele.
 
+   **Pokud PRD obsahuje sekci "Externí služby"**, vyžádej co je potřeba:
+   - AI feature → `GEMINI_API_KEY` nebo `GROQ_API_KEY`
+   - Emaily → `BREVO_API_KEY`
+   - Soubory → Supabase Storage bucket (žádný extra klíč)
+
+   Řekni: "V PRD máš [AI/email/file upload] feature. Budu potřebovat
+   [API klíč / storage bucket]. Máš to? Pokud ne: [odkaz z PRD]."
+
+   **Pro Supabase Storage:** Řekni uživateli ať v Supabase dashboardu
+   vytvoří bucket: Storage → New bucket → pojmenuj (např. `files`) →
+   Public bucket: Yes (pro workshop). Žádný extra env nepotřebuješ —
+   Supabase klient už je nastavený.
+
 6. Vytvoř `.env.example` — šablonu bez skutečných hodnot, kterou commitneš do gitu:
    ```
    NEXT_PUBLIC_SUPABASE_URL=https://xxx.supabase.co
    NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY=eyJ...your-key-here
+   ```
+   Pokud PRD obsahuje externí služby, přidej i:
+   ```
+   # AI feature (Gemini nebo Groq)
+   GEMINI_API_KEY=AI...your-key-here
+   # Emaily (Brevo)
+   BREVO_API_KEY=xkeysib-...your-key-here
    ```
    Tohle je důležitý návyk: `.env.local` je v `.gitignore` (tajné klíče),
    ale `.env.example` ukazuje kolegovi (nebo tobě za měsíc) jaké proměnné

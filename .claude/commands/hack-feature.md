@@ -94,6 +94,21 @@ Potom nabídni vytvoření pull requestu:
 "Chceš vytvořit Pull Request? Udělám to za tebe."
 
 Pokud ano:
+
+**Pokud feature mění databázi** (nová tabulka, nový sloupec), přidej SQL do
+PR description — aby bylo vidět co se musí spustit v Supabase před/po mergi:
+
+```bash
+gh pr create --title "<popis>" --body "Closes #<číslo-issue-pokud-existuje>
+
+## SQL migrace
+\`\`\`sql
+<SQL příkazy co je potřeba spustit>
+\`\`\`
+"
+```
+
+Pokud feature nemění DB:
 ```bash
 gh pr create --title "<popis>" --body "Closes #<číslo-issue-pokud-existuje>"
 ```
@@ -210,6 +225,128 @@ Přizpůsob prompt podle účastníkovy appky:
 - Přidej API klíč i na Vercel (Environment Variables) pokud chceš deploy
 - Aktualizuj `.env.example` — přidej `GEMINI_API_KEY=AI...your-key-here`
   nebo `GROQ_API_KEY=gsk_...your-key-here`
+
+## Recept: Odesílání emailů (Brevo)
+
+Pokud účastník chce odesílat emaily (notifikace, pozvánky, remindery):
+
+### 1. API klíč
+"Máš Brevo API klíč? Pokud ne, zaregistruj se na https://www.brevo.com
+(free tier, 300 emailů/den) → Settings → SMTP & API → API Keys."
+
+### 2. Instalace a env
+```bash
+npm install @getbrevo/brevo
+```
+
+Přidej do `.env.local`:
+```
+BREVO_API_KEY=xkeysib-...
+```
+
+### 3. API Route Handler
+Vytvoř `src/app/api/email/route.ts`:
+
+```typescript
+import { NextRequest, NextResponse } from "next/server";
+
+export async function POST(req: NextRequest) {
+  const { to, subject, html } = await req.json();
+
+  const res = await fetch("https://api.brevo.com/v3/smtp/email", {
+    method: "POST",
+    headers: {
+      "api-key": process.env.BREVO_API_KEY!,
+      "Content-Type": "application/json",
+    },
+    body: JSON.stringify({
+      sender: { name: "Moje Appka", email: "noreply@example.com" },
+      to: [{ email: to }],
+      subject,
+      htmlContent: html,
+    }),
+  });
+
+  if (!res.ok) {
+    return NextResponse.json({ error: "Failed to send" }, { status: 500 });
+  }
+  return NextResponse.json({ ok: true });
+}
+```
+
+### 4. Klientské volání
+```typescript
+await fetch("/api/email", {
+  method: "POST",
+  headers: { "Content-Type": "application/json" },
+  body: JSON.stringify({
+    to: "user@example.com",
+    subject: "Nový úkol přiřazen",
+    html: "<p>Byl ti přiřazen úkol: <strong>Deploy v2</strong></p>",
+  }),
+});
+```
+
+**Důležité:**
+- `BREVO_API_KEY` nesmí být `NEXT_PUBLIC_` — volání jde přes server
+- Sender email musí být ověřený v Brevo dashboardu (pro workshop stačí
+  ověřit vlastní email)
+- Přidej `BREVO_API_KEY` i na Vercel (Environment Variables) pokud chceš deploy
+- Aktualizuj `.env.example` — přidej `BREVO_API_KEY=xkeysib-...your-key-here`
+
+## Recept: Nahrávání souborů (Supabase Storage)
+
+Pokud účastník chce nahrávat soubory (PDF, obrázky, přílohy):
+
+### 1. Bucket
+"Máš vytvořený bucket v Supabase? Pokud ne, otevři Supabase dashboard →
+Storage → New bucket → pojmenuj (např. `files`) → Public: Yes."
+
+### 2. Upload z klientské komponenty
+```typescript
+import { createClient } from "@/lib/supabase";
+
+const supabase = createClient();
+
+async function uploadFile(file: File) {
+  const fileName = `${Date.now()}-${file.name}`;
+  const { data, error } = await supabase.storage
+    .from("files")
+    .upload(fileName, file);
+
+  if (error) throw error;
+
+  const { data: urlData } = supabase.storage
+    .from("files")
+    .getPublicUrl(fileName);
+
+  return urlData.publicUrl;
+}
+```
+
+### 3. Input v UI
+```tsx
+<input
+  type="file"
+  onChange={async (e) => {
+    const file = e.target.files?.[0];
+    if (file) {
+      const url = await uploadFile(file);
+      // ulož url do databáze
+    }
+  }}
+/>
+```
+
+### 4. Zobrazení
+Pro obrázky: `<img src={url} />`.
+Pro PDF/soubory: `<a href={url} target="_blank">Stáhnout</a>`.
+
+**Důležité:**
+- Bucket musí být public (pro workshop). V produkci bys řešil RLS na storage.
+- Žádný extra API klíč — Supabase klient už je nastavený.
+- Supabase free tier: 1GB storage, 2GB bandwidth/měsíc.
+- URL souboru ulož do tabulky (sloupec `file_url text`).
 
 ## Pravidla
 

@@ -91,6 +91,28 @@ Pokud to dává smysl pro účastníkovu appku, zmíň: "Chceš do appky zabudov
 Třeba smart kategorizaci, generování popisků, sumarizaci, doporučování...
 Můžeme to dát do scope nebo na backlog." Netlač — je to nabídka, ne povinnost.
 
+**Odesílání emailů (detekuj automaticky):**
+Pokud účastník zmíní "email", "notifikace", "pozvánka", "reminder" nebo cokoliv
+co implikuje odesílání emailů, informuj ho: "Pro odesílání emailů budeme potřebovat
+službu Brevo (free tier, 300 emailů/den). Zaregistruj se na https://www.brevo.com
+a vygeneruj API klíč v Settings → SMTP & API → API Keys."
+
+**Nahrávání souborů (detekuj automaticky):**
+Pokud účastník zmíní "nahrát soubor", "upload", "PDF", "obrázek", "příloha"
+nebo cokoliv co implikuje file upload, informuj ho: "Pro ukládání souborů
+použijeme Supabase Storage (součást Supabase, free tier 1GB). Žádný další
+účet nepotřebuješ — stačí vytvořit bucket v Supabase dashboardu."
+
+**Důležité:** Pokud scope obsahuje AI, email nebo file upload feature,
+přidej do PRD sekci "Externí služby" s výčtem co bude potřeba:
+```
+## Externí služby
+- Gemini API (AI feature) — https://aistudio.google.com → Get API Key
+- Brevo (emaily) — https://www.brevo.com → Settings → API Keys
+- Supabase Storage (soubory) — už máš účet, vytvoř bucket v dashboardu
+```
+Uživatel si musí účty nachystat před scaffoldem.
+
 Zeptej se: "Souhlasíš s tímhle scope? Chceš něco přidat nebo ubrat?"
 
 ### 5. Datový model
@@ -267,6 +289,9 @@ a já je tam vytvořím."
   Integer ID jsou čitelnější pro začátečníky (id=1, id=2...) a jednodušší na debug.
 - V konverzaci zobrazuj datový model jako ASCII tabulky (pro všechny úrovně).
   Mermaid ER diagram přidej jen do GitHub Issue (krok 6B) — tam se renderuje nativně.
+- **Dva Supabase projekty:** SQL se spouští v DEV projektu (lokální vývoj).
+  Produkční projekt má vlastní data. Řekni: "SQL spusť v DEV projektu.
+  Až budeš deployovat, stejný SQL spustíš i v PROD projektu."
 - SQL musí být funkční pro Supabase — tzn. PostgreSQL syntax.
   Na každou tabulku přidej RLS s permissive policy (Supabase má RLS zapnuté
   by default — bez policy by anon key nevrátil data):
