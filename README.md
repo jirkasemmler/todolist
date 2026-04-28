@@ -1,32 +1,17 @@
-# PRD Vibe Kit
+# Denní Todolist
 
-Předpřipravený kit s AI agenty pro **Product Vibe Coding** workshop.
+Jednoduchý denní to-do list — zobrazí úkoly na konkrétní den, umožní přidávat, splnit a mazat.
 
-Žádný kód, žádná appka — jen agenti a pravidla. Všechno si vygeneruješ sám z vlastního PRD.
+## Stack
+Next.js + Supabase + Tailwind + Vercel
 
-## Quick Start
-
+## Lokální vývoj
 ```bash
-# 1. Naklonuj kit
-git clone git@github.com:jirkasemmler/prd-vibe-kit.git <moje-appka>
-
-# 2. Spusť Claude Code
-cd <moje-appka>
-claude
-# nebo Claude Desktop → záložka Code → Working dir → <moje-appka>
-
-# 3. Validace — napiš /hack a mělo by to napovídat
-/hack-check
+npm install
+npm run dev
 ```
 
-## Co je v kitu
-
-| Soubor | Co dělá |
-|--------|---------|
-| `CLAUDE.md` | Pravidla pro AI — stack, konvence, git workflow, SDLC návyky |
-| `.claude/commands/` | 10 agentů (commandů) — PRD, scaffold, deploy, feature, review… |
-| `README.md` | Tohle čteš |
-| `.nvmrc` | Node.js verze pro Vercel |
+---
 
 ## Dostupné příkazy
 
