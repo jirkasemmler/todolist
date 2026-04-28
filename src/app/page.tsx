@@ -12,7 +12,7 @@ type Todo = {
 };
 
 function formatDate(date: Date): string {
-  return date.toISOString().split("T")[0];
+  return date.toLocaleDateString("sv-SE");
 }
 
 function formatDisplayDate(dateStr: string): string {
@@ -24,24 +24,30 @@ function formatDisplayDate(dateStr: string): string {
   });
 }
 
+const supabase = createClient();
+
 export default function Home() {
   const [todos, setTodos] = useState<Todo[]>([]);
   const [newTitle, setNewTitle] = useState("");
   const [currentDate, setCurrentDate] = useState(() => formatDate(new Date()));
   const [loading, setLoading] = useState(true);
-
-  const supabase = createClient();
+  const [error, setError] = useState<string | null>(null);
 
   const isToday = currentDate === formatDate(new Date());
 
   const fetchTodos = useCallback(async () => {
     setLoading(true);
-    const { data } = await supabase
+    setError(null);
+    const { data, error } = await supabase
       .from("todos")
       .select("*")
       .eq("date", currentDate)
       .order("created_at", { ascending: true });
-    setTodos(data ?? []);
+    if (error) {
+      setError("Nepodařilo se načíst úkoly.");
+    } else {
+      setTodos(data ?? []);
+    }
     setLoading(false);
   }, [currentDate]);
 
@@ -52,18 +58,21 @@ export default function Home() {
   async function addTodo(e: React.FormEvent) {
     e.preventDefault();
     if (!newTitle.trim()) return;
-    await supabase.from("todos").insert({ title: newTitle.trim(), date: currentDate });
+    const { error } = await supabase.from("todos").insert({ title: newTitle.trim(), date: currentDate });
+    if (error) { setError("Nepodařilo se přidat úkol."); return; }
     setNewTitle("");
     fetchTodos();
   }
 
   async function toggleTodo(id: number, done: boolean) {
-    await supabase.from("todos").update({ done: !done }).eq("id", id);
+    const { error } = await supabase.from("todos").update({ done: !done }).eq("id", id);
+    if (error) { setError("Nepodařilo se změnit stav úkolu."); return; }
     fetchTodos();
   }
 
   async function deleteTodo(id: number) {
-    await supabase.from("todos").delete().eq("id", id);
+    const { error } = await supabase.from("todos").delete().eq("id", id);
+    if (error) { setError("Nepodařilo se smazat úkol."); return; }
     fetchTodos();
   }
 
@@ -127,6 +136,13 @@ export default function Home() {
             Přidat
           </button>
         </form>
+
+        {/* Chyba */}
+        {error && (
+          <div className="mb-4 rounded-lg bg-red-50 p-3 text-sm text-red-600 dark:bg-red-950 dark:text-red-400">
+            {error}
+          </div>
+        )}
 
         {/* Seznam úkolů */}
         {loading ? (
